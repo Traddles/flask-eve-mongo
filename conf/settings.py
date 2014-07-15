@@ -1,3 +1,4 @@
+HATEOAS = False
 
 # Enable reads (GET), inserts (POST) and DELETE for resources/collections
 # (if you omit this line, the API will default to ['GET'] and provide
