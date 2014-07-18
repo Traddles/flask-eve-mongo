@@ -13,7 +13,7 @@ flask = Flask(__name__)
 flask.config.update(dict(
 	DEBUG = True,
     USERNAME='admin',
-    PASSWORD='default'
+    PASSWORD=''
 ))
 flask.config['DEBUG_TB_PANELS'] = (
 	'flask.ext.debugtoolbar.panels.versions.VersionDebugPanel',
@@ -41,13 +41,33 @@ class People(engine.DynamicDocument):
 	def __unicode__(self):
 		return self.name
 
+@flask.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        if request.form['username'] != flask.config['USERNAME']:
+            error = 'Invalid username'
+        elif request.form['password'] != flask.config['PASSWORD']:
+            error = 'Invalid password'
+        else:
+            session['logged_in'] = True
+            flash('You were logged in')
+            return redirect(url_for('show_entries'))
+    return render_template('login.html', error=error)
+
+@flask.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    flash('You were logged out')
+    return redirect(url_for('show_entries'))
+
 @flask.route('/add', methods=['POST'])
 def add_entry():
-    # if not session.get('logged_in'):
-    #     abort(401)
-    People(lastname=request.form['lastname'], firstname=request.form['firstname']).save()
-    flash('New entry was successfully posted')
-    return redirect(url_for('show_entries'))
+	if not session.get('logged_in'):
+		abort(401)
+	People(lastname=request.form['lastname'], firstname=request.form['firstname']).save()
+	flash('New entry was successfully posted')
+	return redirect(url_for('show_entries'))
 
 @flask.route("/look")
 def search():
@@ -60,10 +80,6 @@ def api_articles():
 	for art in People.objects:
 		r = r + " - " + art.lastname
 	return 'List of ' + url_for('api_articles') + ":<br>\n" + r
-
-# @flask.route('/')
-# def index():
-# 	return "<h1>Salam</h1>"
 
 @flask.route('/')
 def show_entries():
