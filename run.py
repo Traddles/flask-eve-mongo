@@ -1,6 +1,7 @@
 from eve import Eve
 from flask import Flask, url_for, render_template, send_from_directory
 from flask.ext.mongoengine import MongoEngine, MongoEngineSessionInterface
+from flask.ext.mongoengine.wtf import model_form
 from bson.objectid import ObjectId
 import datetime
 
@@ -26,7 +27,6 @@ flask.config["SECRET_KEY"] = "M3\xbd\xe4\xa5 g\x13\x10\x98\xa8\xb3@\xb5z\xfd\x02
 
 # Database connection
 engine = MongoEngine(flask)
-flask.session_interface = MongoEngineSessionInterface(engine)
 client = engine.connection
 db = client.eve
 
@@ -44,6 +44,9 @@ class People(engine.DynamicDocument):
 	# 	'ordering' : ['-created_at']
 	# }
 
+def view_people(page=1):
+    paginated_todos = People.objects.paginate(page=page, per_page=10)
+
 @flask.route("/add")
 def add_one():
 	People(lastname="addie").save()
@@ -60,6 +63,10 @@ def api_articles():
 	for art in People.objects:
 		r = r + " - " + art.lastname
 	return 'List of ' + url_for('api_articles') + ":<br>\n" + r
+
+@flask.route('/')
+def index():
+	return "<h1>Salam</h1>"
 
 if __name__ == '__main__':
 	# Flask
