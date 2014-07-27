@@ -1,28 +1,23 @@
 {% extends "layout.html" %}
 {% block body %}
-  {% if session.logged_in %}
-    <form action="/add" method=post class=add-entry>
-      <dl>
-        <dt>Lastname:
-        <dd><input type=text size=30 name=lastname>
-        <dt>Firstname:
-        <dd><input type=text size=30 name=firstname>
-        <dd><input type=submit value=Add>
-      </dl>
-    </form>
-  {% endif %}
   <ul class=entries>
   {% for entry in entries %}
     <li><h2>{{ entry.lastname }}</h2>
-      {{ entry.firstname }}
-    <form action="/update/{{ entry.id }}" method=post class=update-entry>
-      <SELECT NAME="firstname">
-      {% for key, value in entry.allowed_fields.firstname.items() %}
-        <OPTION VALUE="{{ key }}">{{ value }}
-      {% endfor %}
-      </SELECT>
-      <input type=submit value=Update>
-    </form>
+    {% if session.logged_in %}
+      <form action="/update/{{ entry.id }}" method=post class=update-entry>
+        <SELECT NAME="firstname">
+        {% for key, value in entry.allowed_fields.firstname.items() %}
+          {% if entry.firstname == value %}
+            <OPTION VALUE="{{ key }}" SELECTED>
+          {% else %}
+            <OPTION VALUE="{{ key }}">
+          {% endif %}
+          {{ value }}
+        {% endfor %}
+        </SELECT>
+        <input type=submit value=Update>
+      </form>
+    {% endif %}
   {% else %}
     <li><em>Unbelievable.  No entries here so far</em>
   {% endfor %}

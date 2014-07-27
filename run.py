@@ -75,7 +75,7 @@ def add_entry():
 @flask.route('/update/<entry_id>', methods=['POST'])
 def update_entry(entry_id):
 	if not session.get('logged_in'):
-		flash("This won't work when not authorized. Login to change")
+		flash("This won't work unless you login")
 		return redirect(url_for('show_entries'))
 	update_object = get_by_id(entry_id)
 
@@ -121,8 +121,8 @@ def get_by_id(entry_id):
 
 if __name__ == '__main__':
 	# Flask
-	flask.run()
+	flask.run(host= '0.0.0.0')
 
 	# Eve
-	app.run()
+	#app.run()
 
