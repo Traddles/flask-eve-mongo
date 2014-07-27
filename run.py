@@ -36,10 +36,12 @@ db = client.eve
 class People(engine.DynamicDocument):
 	created_at = engine.DateTimeField(default=datetime.datetime.now, required=True, db_field ="_created")
 	updated_at = engine.DateTimeField(default=datetime.datetime.now, required=True, db_field ="_updated")
+	allowed_fields = engine.DictField(required=False, db_field ="_fields")
+	field_types = engine.DictField(required=False, db_field ="_types")
 	lastname = engine.StringField(max_length=30, required=True)
 	firstname = engine.StringField(max_length=30, required=False)
 	def __unicode__(self):
-		return self.name
+		return self.lastname
 
 @flask.route('/login', methods=['GET', 'POST'])
 def login():
@@ -69,6 +71,31 @@ def add_entry():
 	flash('New entry was successfully posted')
 	return redirect(url_for('show_entries'))
 
+
+@flask.route('/update/<entry_id>', methods=['POST'])
+def update_entry(entry_id):
+	if not session.get('logged_in'):
+		flash("This won't work when not authorized. Login to change")
+		return redirect(url_for('show_entries'))
+	update_object = get_by_id(entry_id)
+
+	print "This is him:", update_object.lastname
+
+	#People(lastname=request.form['lastname'], firstname=request.form['firstname']).save()
+	s = ''
+	for key in request.form:
+		choice = request.form[key]
+		print key, choice
+
+		if choice in update_object.allowed_fields[key]:
+			print "allright"
+			choice = update_object.allowed_fields[key][choice]
+		update_object[key] = choice
+
+	update_object.save()
+	flash('Update')
+	return redirect(url_for('show_entries'))
+
 @flask.route("/look")
 def search():
 	obj = People.objects.get(lastname="obama")
@@ -85,6 +112,12 @@ def api_articles():
 def show_entries():
     entries = People.objects
     return render_template('show_entries.html', entries=entries)
+
+def get_by_id(entry_id):
+	entry = People.objects(id=entry_id)
+	if not entry:
+		abort(401)
+	return entry[0]
 
 if __name__ == '__main__':
 	# Flask
